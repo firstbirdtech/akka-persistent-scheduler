@@ -8,11 +8,11 @@ import persistentscheduler.persistence.InMemorySchedulerPersistence
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-object SchedulerExtension {
+object PersistentSchedulerExtension {
 
 }
 
-class SchedulerExtension(system: ActorSystem) {
+class PersistentSchedulerExtension(system: ActorSystem) {
 
   implicit val ec = system.dispatcher
   implicit val timeout = Timeout(2.seconds)
