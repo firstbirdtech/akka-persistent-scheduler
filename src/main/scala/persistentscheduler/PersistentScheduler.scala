@@ -14,12 +14,14 @@ object PersistentScheduler {
   case class Info(self: ActorRef) extends Result
   case class SubscribedActorRef(ref: ActorRef) extends Result
   case class Scheduled(event: TimedEvent) extends Result
+  case class RemovedEventsByReference(eventType: String, reference: String, referenceId: String)
 
   sealed trait Request
   case class IsAlive() extends Request
   case class Schedule(event: TimedEvent) extends Request
   case class SubscribeActorRef(subscriber: ActorRef, eventType: String)
-  private case class PublishEvent(event: TimedEvent)
+  case class RemoveEventsByReference(eventType: String, reference: String, referenceId: String)
+  case class PublishEvent(event: TimedEvent)
 
   case class Subscription(eventType: String, subscriber: ActorRef)
 
@@ -46,6 +48,8 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
       publishEvent(event)
     case SubscribeActorRef(subscriber, eventType) =>
       addSubscription(Subscription(eventType, subscriber))
+    case RemoveEventsByReference(eventType, reference, referenceId) =>
+      removeEventsByReference(eventType, reference, referenceId)
   }
 
   def addSubscription(subscription: Subscription): Unit = {
@@ -58,6 +62,8 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   }
 
   def scheduleNextEventFromPersistence(): Unit = {
+    nextCancellable.filter(!_.isCancelled).foreach(_.cancel())
+
     nextEvent = persistence.next(1).headOption
     nextCancellable = nextEvent.map(schedule(_))
   }
@@ -84,13 +90,24 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
       nextCancellable = nextEvent.map(schedule(_))
     }
 
-    //    nextEvent = Some(nextEvent.map(n => if (n.date.isBefore(event.date)) n else event).getOrElse(event))
     sender() ! Scheduled(event)
   }
 
   def schedule(event: TimedEvent): Cancellable = {
     val after = (event.date.getMillis - DateTime.now().getMillis).millis
     scheduler.scheduleOnce(after, self, PublishEvent(event))
+  }
+
+  def removeEventsByReference(eventType: String, reference: String, referenceId: String): Unit = {
+    persistence.delete(eventType, reference, referenceId)
+
+    val removeScheduledEvent = nextEvent.forall(e => e.eventType == eventType && e.reference == reference && e.referenceId == referenceId)
+
+    if (removeScheduledEvent) {
+      scheduleNextEventFromPersistence()
+    }
+
+    sender() ! RemovedEventsByReference(eventType, reference, referenceId)
   }
 
 }

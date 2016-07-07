@@ -10,15 +10,17 @@ import scala.collection.JavaConversions._
 
 object InMemorySchedulerPersistence {
   def apply(): InMemorySchedulerPersistence = new InMemorySchedulerPersistence()
+
+  def apply(initialEvents: Seq[TimedEvent]): InMemorySchedulerPersistence = new InMemorySchedulerPersistence(initialEvents)
 }
 
-class InMemorySchedulerPersistence extends SchedulerPersistence {
+class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
 
   implicit val dateTimeOrdering: Ordering[DateTime] = new Ordering[DateTime] {
     override def compare(x: DateTime, y: DateTime): Int = x.compareTo(y)
   }
 
-  private var events: Map[UUID, TimedEvent] = Map()
+  private var events: Map[UUID, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
 
   override def delete(id: UUID): Unit = {
     events = events - id
@@ -34,4 +36,10 @@ class InMemorySchedulerPersistence extends SchedulerPersistence {
   }
 
   override def count(): Long = events.size
+
+  override def delete(eventType: String, reference: String, referenceId: String): Unit = {
+    events = events.filterNot {
+      case (_, TimedEvent(_, _, et, r, rid)) => eventType == et && reference == r && referenceId == rid
+    }
+  }
 }

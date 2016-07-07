@@ -2,7 +2,7 @@ package persistentscheduler
 
 import java.util.UUID
 
-import akka.actor.{ActorSystem, Props, Scheduler}
+import akka.actor.{ActorRef, ActorSystem, Props, Scheduler}
 import akka.pattern._
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
@@ -21,12 +21,13 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
   with ImplicitSender {
 
   implicit val to = Timeout(1.second)
-  val persistence = InMemorySchedulerPersistence()
-  val virtualTime = new VirtualTime
+  val time = new VirtualTime
 
   "A PersistentScheduler" should {
 
     "persist events when they are scheduled" in {
+
+      val persistence = InMemorySchedulerPersistence()
 
       val testref = TestActorRef(PersistentScheduler(persistence))
       testref ? Schedule(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "reference", "reference-id"))
@@ -36,9 +37,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
     }
 
     "send fired events to subscribed actors" in {
-      val scheduler = system.actorOf(Props(new PersistentScheduler(persistence) {
-        override def scheduler: Scheduler = virtualTime.scheduler
-      }))
+      val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
@@ -48,15 +47,13 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! Schedule(event)
       expectMsg(Scheduled(event))
 
-      virtualTime.advance(5.seconds)
+      time.advance(5.seconds)
 
       expectMsg(event)
     }
 
     "send no events if time is not come" in {
-      val scheduler = system.actorOf(Props(new PersistentScheduler(persistence) {
-        override def scheduler: Scheduler = virtualTime.scheduler
-      }))
+      val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
@@ -66,15 +63,13 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! Schedule(event)
       expectMsg(Scheduled(event))
 
-      virtualTime.advance(3.seconds)
+      time.advance(3.seconds)
 
       expectNoMsg()
     }
 
     "load an additional timed event after publishing one" in {
-      val scheduler = system.actorOf(Props(new PersistentScheduler(persistence) {
-        override def scheduler: Scheduler = virtualTime.scheduler
-      }))
+      val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
@@ -87,20 +82,75 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! Schedule(event2)
       expectMsg(Scheduled(event2))
 
-      virtualTime.advance(5.seconds)
+      time.advance(5.seconds)
       expectMsg(event)
 
-      virtualTime.advance(10.seconds) //this is necessary because even if scheduler advanced the real time hasn't
+      time.advance(10.seconds) //this is necessary because even if scheduler advanced the real time hasn't
       expectMsg(event2)
     }
 
 
-    "schedule the new event if there hasn't been another" in {
+    "schedule existing events from persistence on startup" in {
 
-      val ref = TestActorRef(new PersistentScheduler(persistence) {
-        override def scheduler: Scheduler = virtualTime.scheduler
-      })
+      val existingEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId")
+      val persistenceWithExistingEvents = InMemorySchedulerPersistence(Seq(existingEvent))
+
+      val scheduler = persistentSchedulerWithVirtualTime(persistenceWithExistingEvents)
+
+      scheduler ! SubscribeActorRef(self, "type")
+      expectMsgClass(classOf[SubscribedActorRef])
+
+      time.advance(5.seconds)
+
+      expectMsg(existingEvent)
+    }
+
+    "delete events when they have been published" in {
+
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId")))
+      val scheduler = persistentSchedulerWithVirtualTime(persistence)
+
+      scheduler ! SubscribeActorRef(self, "type")
+      expectMsgClass(classOf[SubscribedActorRef])
+
+      time.advance(5.seconds)
+
+      expectMsgClass(classOf[TimedEvent])
+
+      persistence.count() shouldBe 0
 
     }
+
+    "remove persisted events if they are removed from the schedule" in {
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId")))
+      val scheduler = persistentSchedulerWithVirtualTime(persistence)
+
+      scheduler ! RemoveEventsByReference("type", "ref", "refId")
+      expectMsg(RemovedEventsByReference("type", "ref", "refId"))
+
+      persistence.count() shouldBe 0
+    }
+
+    "remove already scheduled events if they are removed from the schedule" in {
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId")))
+      val scheduler = persistentSchedulerWithVirtualTime(persistence)
+
+      scheduler ! SubscribeActorRef(self, "type")
+      expectMsg(SubscribedActorRef(self))
+
+      scheduler ! RemoveEventsByReference("type", "ref", "refId")
+      expectMsg(RemovedEventsByReference("type", "ref", "refId"))
+
+      time.advance(5.seconds)
+
+      expectNoMsg(1.second)
+    }
+
+  }
+
+  def persistentSchedulerWithVirtualTime(persistenceWithExistingEvents: InMemorySchedulerPersistence = InMemorySchedulerPersistence()): ActorRef = {
+    system.actorOf(Props(new PersistentScheduler(persistenceWithExistingEvents) {
+      override def scheduler: Scheduler = time.scheduler
+    }))
   }
 }

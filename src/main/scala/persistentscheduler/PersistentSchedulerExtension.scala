@@ -9,7 +9,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object PersistentSchedulerExtension {
-
+  def apply(system: ActorSystem): PersistentSchedulerExtension = new PersistentSchedulerExtension(system)
 }
 
 class PersistentSchedulerExtension(system: ActorSystem) {
@@ -35,6 +35,5 @@ class PersistentSchedulerExtension(system: ActorSystem) {
   def subscribe(eventType: String, subscriber: ActorRef): Unit = {
     scheduler ! PersistentScheduler.SubscribeActorRef(subscriber, eventType)
   }
-
 
 }
