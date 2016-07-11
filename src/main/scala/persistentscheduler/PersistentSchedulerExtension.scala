@@ -3,13 +3,15 @@ package persistentscheduler
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
+import persistentscheduler.PersistentScheduler.RemoveEventsByReference
 import persistentscheduler.persistence.InMemorySchedulerPersistence
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object PersistentSchedulerExtension {
-  def apply(system: ActorSystem): PersistentSchedulerExtension = new PersistentSchedulerExtension(system)
+  def apply()(implicit system: ActorSystem): PersistentSchedulerExtension = new PersistentSchedulerExtension(system)
+  def create(system: ActorSystem): PersistentSchedulerExtension = new PersistentSchedulerExtension(system)
 }
 
 class PersistentSchedulerExtension(system: ActorSystem) {
@@ -34,6 +36,10 @@ class PersistentSchedulerExtension(system: ActorSystem) {
 
   def subscribe(eventType: String, subscriber: ActorRef): Unit = {
     scheduler ! PersistentScheduler.SubscribeActorRef(subscriber, eventType)
+  }
+
+  def removeEvents(eventType: String, reference: String, referenceId: String): Unit = {
+    scheduler ! RemoveEventsByReference(eventType, reference, referenceId)
   }
 
 }
