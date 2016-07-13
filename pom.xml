@@ -14,6 +14,13 @@
     <artifactId>akka-persistent-scheduler</artifactId>
     <version>0-SNAPSHOT</version>
 
+    <scm>
+        <url>https://github.com/firstbirdtech/akka-persistent-scheduler</url>
+        <connection>scm:git:ssh://git@github.com:firstbirdtech/akka-persistent-scheduler.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:firstbirdtech/akka-persistent-scheduler.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <scala-maven-plugin.version>3.2.1</scala-maven-plugin.version>
         <scala.version>2.11.8</scala.version>

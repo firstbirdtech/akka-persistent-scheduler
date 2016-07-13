@@ -1,15 +1,14 @@
 package persistentscheduler
 
-import java.util.Optional
-
 import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import org.joda.time.DateTime
 import persistentscheduler.PersistentScheduler._
 import persistentscheduler.persistence.SchedulerPersistence
 
 import scala.collection.JavaConversions._
-import scala.concurrent.duration._
 import scala.compat.java8.OptionConverters._
+import scala.concurrent.duration._
+
 object PersistentScheduler {
 
   sealed trait Result
@@ -112,7 +111,7 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   }
 
   def schedule(event: TimedEvent): Cancellable = {
-    val after = (event.date.getMillis - DateTime.now().getMillis).millis
+    val after = Math.max(event.date.getMillis - DateTime.now().getMillis, 0L).millis
     scheduler.scheduleOnce(after, self, PublishEvent(event))
   }
 
@@ -129,11 +128,9 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   }
 
   def checkPersistenceForEvents(): Unit = {
-    nextEvent match {
-      case None =>
-        nextEvent = persistence.next(1).headOption
-        nextCancellable = nextEvent.map(schedule)
-      case _ => //do nothing if there is already some event scheduled
-    }
+    nextCancellable.foreach(_.cancel())
+    nextEvent = persistence.next(1).headOption
+    nextCancellable = nextEvent.map(schedule)
   }
+
 }
