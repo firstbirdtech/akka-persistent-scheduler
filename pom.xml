@@ -20,6 +20,7 @@
         <joda-time.version>2.9.4</joda-time.version>
         <akka.version>2.4.7</akka.version>
         <scalatest.version>2.2.6</scalatest.version>
+        <scala-java8-compat.version>0.8.0-RC3</scala-java8-compat.version>
     </properties>
     <dependencies>
         <dependency>
@@ -49,8 +50,11 @@
             <version>0.4.0</version>
             <scope>test</scope>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-java8-compat_2.11</artifactId>
+            <version>${scala-java8-compat.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

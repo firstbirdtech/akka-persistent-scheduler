@@ -19,10 +19,12 @@ object PersistentScheduler {
   sealed trait Request
   case class IsAlive() extends Request
   case class Schedule(event: TimedEvent) extends Request
-  case class SubscribeActorRef(subscriber: ActorRef, eventType: String)
-  case class RemoveEventsByReference(eventType: String, reference: String, referenceId: String)
-  case class PublishEvent(event: TimedEvent)
+  case class SubscribeActorRef(subscriber: ActorRef, eventType: String) extends Request
+  case class RemoveEventsByReference(eventType: String, reference: String, referenceId: String) extends Request
+  case class PublishEvent(event: TimedEvent) extends Request
+  case class CheckPersistenceForEvents() extends Request
 
+  case class State(subscriptions: Set[Subscription])
   case class Subscription(eventType: String, subscriber: ActorRef)
 
   def props(persistence: SchedulerPersistence) = Props(classOf[PersistentScheduler], persistence)
@@ -50,6 +52,10 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
       addSubscription(Subscription(eventType, subscriber))
     case RemoveEventsByReference(eventType, reference, referenceId) =>
       removeEventsByReference(eventType, reference, referenceId)
+    case CheckPersistenceForEvents() =>
+      checkPersistenceForEvents()
+    case State(subs) =>
+      subscriptions = subs;
   }
 
   def addSubscription(subscription: Subscription): Unit = {
@@ -57,8 +63,18 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
     sender() ! SubscribedActorRef(sender())
   }
 
+
   override def preStart(): Unit = {
     scheduleNextEventFromPersistence()
+    schedulePersistenceCheckForEvents()
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
+    self ! State(subscriptions)
+  }
+
+  def schedulePersistenceCheckForEvents(): Unit = {
+    scheduler.schedule(1.minute, 1.minute, self, CheckPersistenceForEvents())
   }
 
   def scheduleNextEventFromPersistence(): Unit = {
@@ -110,4 +126,12 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
     sender() ! RemovedEventsByReference(eventType, reference, referenceId)
   }
 
+  def checkPersistenceForEvents(): Unit = {
+    nextEvent match {
+      case None =>
+        nextEvent = persistence.next(1).headOption
+        nextCancellable = nextEvent.map(schedule)
+      case _ => //do nothing if there is already some event scheduled
+    }
+  }
 }

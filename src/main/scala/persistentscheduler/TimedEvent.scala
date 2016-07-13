@@ -1,13 +1,16 @@
 package persistentscheduler
 
-import java.util.UUID
+import java.util.{Optional, UUID}
 
 import org.joda.time.DateTime
 
+import scala.beans.BeanProperty
+
 case class TimedEvent(
-  id: UUID,
-  date: DateTime,
-  eventType: String,
-  reference: String,
-  referenceId: String
+  @BeanProperty id: UUID,
+  @BeanProperty date: DateTime,
+  @BeanProperty eventType: String,
+  @BeanProperty reference: String,
+  @BeanProperty referenceId: String,
+  @BeanProperty payload: Optional[String]
 )

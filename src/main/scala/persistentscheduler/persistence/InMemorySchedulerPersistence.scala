@@ -39,7 +39,7 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
 
   override def delete(eventType: String, reference: String, referenceId: String): Unit = {
     events = events.filterNot {
-      case (_, TimedEvent(_, _, et, r, rid)) => eventType == et && reference == r && referenceId == rid
+      case (_, TimedEvent(_, _, et, r, rid, _)) => eventType == et && reference == r && referenceId == rid
     }
   }
 }
