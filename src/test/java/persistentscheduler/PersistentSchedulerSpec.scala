@@ -31,7 +31,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       val persistence = InMemorySchedulerPersistence()
 
       val testref = TestActorRef(PersistentScheduler(persistence))
-      testref ? Schedule(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "reference", "reference-id", None.asJava))
+      testref ? Schedule(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava))
 
       persistence.count should equal(1)
 
@@ -43,7 +43,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "company", "1", None.asJava)
+      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
 
       scheduler ! Schedule(event)
       expectMsg(Scheduled(event))
@@ -59,7 +59,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "company", "1", None.asJava)
+      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
 
       scheduler ! Schedule(event)
       expectMsg(Scheduled(event))
@@ -75,11 +75,11 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "company", "1", None.asJava)
+      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       scheduler ! Schedule(event)
       expectMsg(Scheduled(event))
 
-      val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(10), "type", "company", "1", None.asJava)
+      val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(10), "type", None.asJava, None.asJava)
       scheduler ! Schedule(event2)
       expectMsg(Scheduled(event2))
 
@@ -93,7 +93,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
 
     "schedule existing events from persistence on startup" in {
 
-      val existingEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)
+      val existingEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       val persistenceWithExistingEvents = InMemorySchedulerPersistence(Seq(existingEvent))
 
       val scheduler = persistentSchedulerWithVirtualTime(persistenceWithExistingEvents)
@@ -108,7 +108,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
 
     "delete events when they have been published" in {
 
-      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)))
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)))
       val scheduler = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
@@ -123,24 +123,24 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
     }
 
     "remove persisted events if they are removed from the schedule" in {
-      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)))
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref").asJava, None.asJava)))
       val scheduler = persistentSchedulerWithVirtualTime(persistence)
 
-      scheduler ! RemoveEventsByReference("type", "ref", "refId")
-      expectMsg(RemovedEventsByReference("type", "ref", "refId"))
+      scheduler ! RemoveEventsByReference("type", "ref")
+      expectMsg(RemovedEventsByReference("type", "ref"))
 
       persistence.count() shouldBe 0
     }
 
     "remove already scheduled events if they are removed from the schedule" in {
-      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)))
+      val persistence = InMemorySchedulerPersistence(Seq(TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref").asJava, None.asJava)))
       val scheduler = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      scheduler ! RemoveEventsByReference("type", "ref", "refId")
-      expectMsg(RemovedEventsByReference("type", "ref", "refId"))
+      scheduler ! RemoveEventsByReference("type", "ref")
+      expectMsg(RemovedEventsByReference("type", "ref"))
 
       time.advance(5.seconds)
 
@@ -154,7 +154,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      val expectedEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)
+      val expectedEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       persistence.save(expectedEvent)
 
       time.advance(1.minutes)
@@ -184,10 +184,10 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       scheduler ! SubscribeActorRef(self, "type")
       expectMsg(SubscribedActorRef(self))
 
-      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)
+      val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type",None.asJava, None.asJava)
       scheduler ! Schedule(event)
 
-      val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", "ref", "refId", None.asJava)
+      val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       scheduler ! Schedule(event2)
       expectMsg(Scheduled(event2))
 

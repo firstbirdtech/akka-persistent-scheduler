@@ -5,7 +5,7 @@ import java.util.UUID
 
 import org.joda.time.DateTime
 import persistentscheduler.TimedEvent
-
+import scala.compat.java8.OptionConverters._
 import scala.collection.JavaConversions._
 
 object InMemorySchedulerPersistence {
@@ -37,9 +37,9 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
 
   override def count(): Long = events.size
 
-  override def delete(eventType: String, reference: String, referenceId: String): Unit = {
+  override def delete(eventType: String, reference: String): Unit = {
     events = events.filterNot {
-      case (_, TimedEvent(_, _, et, r, rid, _)) => eventType == et && reference == r && referenceId == rid
+      case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
     }
   }
 }

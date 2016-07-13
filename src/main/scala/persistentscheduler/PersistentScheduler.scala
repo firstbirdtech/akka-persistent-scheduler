@@ -1,5 +1,7 @@
 package persistentscheduler
 
+import java.util.Optional
+
 import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import org.joda.time.DateTime
 import persistentscheduler.PersistentScheduler._
@@ -7,20 +9,20 @@ import persistentscheduler.persistence.SchedulerPersistence
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-
+import scala.compat.java8.OptionConverters._
 object PersistentScheduler {
 
   sealed trait Result
   case class Info(self: ActorRef) extends Result
   case class SubscribedActorRef(ref: ActorRef) extends Result
   case class Scheduled(event: TimedEvent) extends Result
-  case class RemovedEventsByReference(eventType: String, reference: String, referenceId: String)
+  case class RemovedEventsByReference(eventType: String, reference: String)
 
   sealed trait Request
   case class IsAlive() extends Request
   case class Schedule(event: TimedEvent) extends Request
   case class SubscribeActorRef(subscriber: ActorRef, eventType: String) extends Request
-  case class RemoveEventsByReference(eventType: String, reference: String, referenceId: String) extends Request
+  case class RemoveEventsByReference(eventType: String, reference: String) extends Request
   case class PublishEvent(event: TimedEvent) extends Request
   case class CheckPersistenceForEvents() extends Request
 
@@ -50,12 +52,12 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
       publishEvent(event)
     case SubscribeActorRef(subscriber, eventType) =>
       addSubscription(Subscription(eventType, subscriber))
-    case RemoveEventsByReference(eventType, reference, referenceId) =>
-      removeEventsByReference(eventType, reference, referenceId)
+    case RemoveEventsByReference(eventType, reference) =>
+      removeEventsByReference(eventType, reference)
     case CheckPersistenceForEvents() =>
       checkPersistenceForEvents()
-    case State(subs) =>
-      subscriptions = subs;
+    case State(subscriptions) =>
+      this.subscriptions = subscriptions;
   }
 
   def addSubscription(subscription: Subscription): Unit = {
@@ -114,16 +116,16 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
     scheduler.scheduleOnce(after, self, PublishEvent(event))
   }
 
-  def removeEventsByReference(eventType: String, reference: String, referenceId: String): Unit = {
-    persistence.delete(eventType, reference, referenceId)
+  def removeEventsByReference(eventType: String, reference: String): Unit = {
+    persistence.delete(eventType, reference)
 
-    val removeScheduledEvent = nextEvent.forall(e => e.eventType == eventType && e.reference == reference && e.referenceId == referenceId)
+    val removeScheduledEvent = nextEvent.forall(e => e.eventType == eventType && e.reference == Some(reference).asJava)
 
     if (removeScheduledEvent) {
       scheduleNextEventFromPersistence()
     }
 
-    sender() ! RemovedEventsByReference(eventType, reference, referenceId)
+    sender() ! RemovedEventsByReference(eventType, reference)
   }
 
   def checkPersistenceForEvents(): Unit = {

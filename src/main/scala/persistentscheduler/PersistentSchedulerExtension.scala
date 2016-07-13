@@ -39,8 +39,8 @@ class PersistentSchedulerExtension(system: ActorSystem) {
     scheduler ! PersistentScheduler.SubscribeActorRef(subscriber, eventType)
   }
 
-  def removeEvents(eventType: String, reference: String, referenceId: String): Unit = {
-    scheduler ! RemoveEventsByReference(eventType, reference, referenceId)
+  def removeEvents(eventType: String, reference: String): Unit = {
+    scheduler ! RemoveEventsByReference(eventType, reference)
   }
 
 }
