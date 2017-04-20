@@ -15,7 +15,7 @@ before_install:
   - docker-compose up -d
 
 script:
-  - sbt clean coverage test coverageReport coverageAggregate codacyCoverage
+  - sbt clean coverage test coverageReport coverageAggregate
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
