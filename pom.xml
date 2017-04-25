@@ -7,7 +7,7 @@
     <parent>
         <groupId>eu.firstbird</groupId>
         <artifactId>firstbird-parent</artifactId>
-        <version>0.0.12</version>
+        <version>1.0</version>
     </parent>
 
     <groupId>eu.firstbird</groupId>
