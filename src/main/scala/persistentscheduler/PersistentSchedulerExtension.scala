@@ -3,10 +3,10 @@ package persistentscheduler
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
-import persistentscheduler.PersistentScheduler.RemoveEventsByReference
+import persistentscheduler.PersistentScheduler.{FindEventsByReference, FoundEventsByReference, RemoveEventsByReference}
 import persistentscheduler.persistence.SchedulerPersistence
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 object PersistentSchedulerExtension {
@@ -41,6 +41,16 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence, system: Ac
 
   def removeEvents(eventType: String, reference: String): Unit = {
     scheduler ! RemoveEventsByReference(eventType, reference)
+  }
+
+  def findEvents(eventType: String, reference: String): List[TimedEvent] = {
+    implicit val timeout = Timeout(15 seconds)
+    val future: Future[Any] = scheduler ? FindEventsByReference(eventType, reference)
+
+    Await.result(future, timeout.duration) match {
+      case FoundEventsByReference(_, _, events) => events
+      case _ => List()
+    }
   }
 
 }

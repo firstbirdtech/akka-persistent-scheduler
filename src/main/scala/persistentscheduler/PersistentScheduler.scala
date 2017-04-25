@@ -16,6 +16,7 @@ object PersistentScheduler {
   case class SubscribedActorRef(ref: ActorRef) extends Result
   case class Scheduled(event: TimedEvent) extends Result
   case class RemovedEventsByReference(eventType: String, reference: String)
+  case class FoundEventsByReference(eventType: String, reference: String, events: List[TimedEvent])
 
   sealed trait Request
   case class IsAlive() extends Request
@@ -24,6 +25,7 @@ object PersistentScheduler {
   case class RemoveEventsByReference(eventType: String, reference: String) extends Request
   case class PublishEvent(event: TimedEvent) extends Request
   case class CheckPersistenceForEvents() extends Request
+  case class FindEventsByReference(eventType: String, reference: String) extends Request
 
   case class State(subscriptions: Set[Subscription])
   case class Subscription(eventType: String, subscriber: ActorRef)
@@ -55,6 +57,8 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
       removeEventsByReference(eventType, reference)
     case CheckPersistenceForEvents() =>
       checkPersistenceForEvents()
+    case FindEventsByReference(eventType, reference) =>
+      findEventsByReference(eventType, reference)
     case State(subscriptions) =>
       this.subscriptions = subscriptions;
   }
@@ -125,6 +129,10 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
     }
 
     sender() ! RemovedEventsByReference(eventType, reference)
+  }
+
+  def findEventsByReference(eventType: String, reference: String): Unit = {
+    sender() ! FoundEventsByReference(eventType, reference, persistence.find(eventType, reference))
   }
 
   def checkPersistenceForEvents(): Unit = {
