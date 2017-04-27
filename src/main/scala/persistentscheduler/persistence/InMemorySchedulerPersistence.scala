@@ -43,7 +43,7 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
     }
   }
 
-  override def find(eventType: String, reference: String): List[TimedEvent] = {
+  override def find(eventType: String, reference: String): util.List[TimedEvent] = {
     events.filter {
       case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
     }.values.toList

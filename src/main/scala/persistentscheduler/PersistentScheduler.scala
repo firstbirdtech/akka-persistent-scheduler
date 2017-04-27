@@ -132,7 +132,7 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   }
 
   def findEventsByReference(eventType: String, reference: String): Unit = {
-    sender() ! FoundEventsByReference(eventType, reference, persistence.find(eventType, reference))
+    sender() ! FoundEventsByReference(eventType, reference, persistence.find(eventType, reference).toList)
   }
 
   def checkPersistenceForEvents(): Unit = {
