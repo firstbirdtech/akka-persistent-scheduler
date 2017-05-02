@@ -2,14 +2,12 @@ package persistentscheduler
 
 import java.util.UUID
 
-import akka.actor.{ActorRef, ActorSystem, Props, Scheduler}
-import akka.pattern._
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
 import com.miguno.akka.testing.VirtualTime
 import org.joda.time.DateTime
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
-import persistentscheduler.PersistentScheduler._
 import persistentscheduler.persistence.InMemorySchedulerPersistence
 
 import scala.compat.java8.OptionConverters._
