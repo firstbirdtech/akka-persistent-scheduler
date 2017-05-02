@@ -195,6 +195,20 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       expectMsg(event2)
 
     }
+
+    "find persisted events" in {
+      val event1 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref").asJava, None.asJava)
+      val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref").asJava, None.asJava)
+      val eventOther = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref-other").asJava, None.asJava)
+      val persistence = InMemorySchedulerPersistence(Seq(event1, event2, eventOther))
+      val scheduler = persistentSchedulerWithVirtualTime(persistence)
+
+      scheduler ! SubscribeActorRef(self, "type")
+      expectMsg(SubscribedActorRef(self))
+
+      scheduler ! FindEventsByReference("type", "ref")
+      expectMsg(FoundEventsByReference("type", "ref", List(event1, event2)))
+    }
   }
 
   def persistentSchedulerWithVirtualTime(persistenceWithExistingEvents: InMemorySchedulerPersistence = InMemorySchedulerPersistence()): ActorRef = {
