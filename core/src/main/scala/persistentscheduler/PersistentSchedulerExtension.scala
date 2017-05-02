@@ -8,6 +8,7 @@ import persistentscheduler.persistence.SchedulerPersistence
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object PersistentSchedulerExtension {
   def apply(persistence: SchedulerPersistence)(implicit system: ActorSystem): PersistentSchedulerExtension = new PersistentSchedulerExtension(persistence, system)

@@ -6,7 +6,7 @@ import persistentscheduler.TimedEvent
 
 trait SchedulerPersistence {
 
-  def delete(eventType: String, reference: String)
+  def delete(eventType: String, reference: String): Unit
 
   def delete(id: UUID): Unit
 
