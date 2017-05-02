@@ -31,7 +31,7 @@ class PersistentSchedulerExtensionSpec extends TestKit(ActorSystem("test"))
       val persistence = InMemorySchedulerPersistence(Seq(event1, event2, eventOther))
       val scheduler = new PersistentSchedulerExtension(persistence, system) {}
 
-      scheduler.findEvents("type", "ref") should equal(List(event1, event2))
+      scheduler.findEvents("type", "ref") should contain allOf(event1, event2)
     }
 
     "find missing events is empty list" in {
