@@ -1,5 +1,3 @@
-addSbtPlugin("com.dwijnand"  % "sbt-dynver"          % "1.2.0")
-addSbtPlugin("me.lessis"     % "bintray-sbt"         % "0.3.0-8-g6d0c3f8")
-
-resolvers += Resolver.url("2m-sbt-plugin-releases", url("https://dl.bintray.com/2m/sbt-plugin-releases/"))(
-  Resolver.ivyStylePatterns)
+addSbtPlugin("com.dwijnand" % "sbt-dynver" % "3.0.0")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
+addSbtPlugin("com.lucidchart"    % "sbt-scalafmt"        % "1.15")

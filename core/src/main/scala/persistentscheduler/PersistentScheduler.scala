@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import persistentscheduler.PersistentScheduler._
 import persistentscheduler.persistence.SchedulerPersistence
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
 
@@ -30,7 +30,7 @@ object PersistentScheduler {
   case class State(subscriptions: Set[Subscription])
   case class Subscription(eventType: String, subscriber: ActorRef)
 
-  def props(persistence: SchedulerPersistence) = Props(classOf[PersistentScheduler], persistence)
+  def props(persistence: SchedulerPersistence) = Props(new PersistentScheduler(persistence))
 
   def apply(persistence: SchedulerPersistence): PersistentScheduler = new PersistentScheduler(persistence)
 }
@@ -85,7 +85,7 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   def scheduleNextEventFromPersistence(): Unit = {
     nextCancellable.filter(!_.isCancelled).foreach(_.cancel())
 
-    nextEvent = persistence.next(1).headOption
+    nextEvent = persistence.next(1).asScala.headOption
     nextCancellable = nextEvent.map(schedule(_))
   }
 
@@ -132,12 +132,12 @@ class PersistentScheduler(persistence: SchedulerPersistence) extends Actor
   }
 
   def findEventsByReference(eventType: String, reference: String): Unit = {
-    sender() ! FoundEventsByReference(eventType, reference, persistence.find(eventType, reference).toList)
+    sender() ! FoundEventsByReference(eventType, reference, persistence.find(eventType, reference).asScala.toList)
   }
 
   def checkPersistenceForEvents(): Unit = {
     nextCancellable.foreach(_.cancel())
-    nextEvent = persistence.next(1).headOption
+    nextEvent = persistence.next(1).asScala.headOption
     nextCancellable = nextEvent.map(schedule)
   }
 

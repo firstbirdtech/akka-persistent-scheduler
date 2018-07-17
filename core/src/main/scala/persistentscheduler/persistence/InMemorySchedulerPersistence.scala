@@ -1,13 +1,12 @@
 package persistentscheduler.persistence
 
-import java.util
-import java.util.UUID
 import java.util.{UUID, List => JList}
 
 import org.joda.time.DateTime
 import persistentscheduler.TimedEvent
+
+import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
-import scala.collection.JavaConversions._
 
 object InMemorySchedulerPersistence {
   def apply(): InMemorySchedulerPersistence = new InMemorySchedulerPersistence()
@@ -33,7 +32,7 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
   }
 
   override def next(n: Int): JList[TimedEvent] = {
-    events.values.toList.sortBy(_.date).take(2)
+    events.values.toList.sortBy(_.date).take(2).asJava
   }
 
   override def count(): Long = events.size
@@ -47,6 +46,6 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
   override def find(eventType: String, reference: String): JList[TimedEvent] = {
     events.filter {
       case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
-    }.values.toList
+    }.values.toList.asJava
   }
 }
