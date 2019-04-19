@@ -11,7 +11,8 @@ import scala.compat.java8.OptionConverters._
 object InMemorySchedulerPersistence {
   def apply(): InMemorySchedulerPersistence = new InMemorySchedulerPersistence()
 
-  def apply(initialEvents: Seq[TimedEvent]): InMemorySchedulerPersistence = new InMemorySchedulerPersistence(initialEvents)
+  def apply(initialEvents: Seq[TimedEvent]): InMemorySchedulerPersistence =
+    new InMemorySchedulerPersistence(initialEvents)
 }
 
 class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
@@ -44,8 +45,12 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
   }
 
   override def find(eventType: String, reference: String): JList[TimedEvent] = {
-    events.filter {
-      case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
-    }.values.toList.asJava
+    events
+      .filter {
+        case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
+      }
+      .values
+      .toList
+      .asJava
   }
 }

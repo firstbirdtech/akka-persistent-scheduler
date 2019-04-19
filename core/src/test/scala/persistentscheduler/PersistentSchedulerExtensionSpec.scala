@@ -7,6 +7,7 @@ import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
 import com.miguno.akka.testing.VirtualTime
 import org.joda.time.DateTime
+import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
 import persistentscheduler.persistence.InMemorySchedulerPersistence
 
@@ -31,7 +32,11 @@ class PersistentSchedulerExtensionSpec extends TestKit(ActorSystem("test"))
       val persistence = InMemorySchedulerPersistence(Seq(event1, event2, eventOther))
       val scheduler = new PersistentSchedulerExtension(persistence, system) {}
 
-      scheduler.findEvents("type", "ref") should contain allOf(event1, event2)
+      val result = scheduler.findEvents("type", "ref")
+
+      whenReady(result) { s =>
+        s should contain allOf(event1, event2)
+      }
     }
 
     "find missing events is empty list" in {
@@ -39,7 +44,11 @@ class PersistentSchedulerExtensionSpec extends TestKit(ActorSystem("test"))
       val persistence = InMemorySchedulerPersistence(Seq(eventOther))
       val scheduler = new PersistentSchedulerExtension(persistence, system) {}
 
-      scheduler.findEvents("type", "ref") should equal(List())
+      val result = scheduler.findEvents("type", "ref")
+
+      whenReady(result) { s =>
+        s should equal(List())
+      }
     }
   }
 }
