@@ -9,7 +9,7 @@ import com.miguno.akka.testing.VirtualTime
 import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
-import persistentscheduler.persistence.InMemorySchedulerPersistence
+import persistentscheduler.scaladsl.PersistentSchedulerExtension
 
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
@@ -30,7 +30,7 @@ class PersistentSchedulerExtensionSpec extends TestKit(ActorSystem("test"))
       val event2 = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref").asJava, None.asJava)
       val eventOther = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref-other").asJava, None.asJava)
       val persistence = InMemorySchedulerPersistence(Seq(event1, event2, eventOther))
-      val scheduler = new PersistentSchedulerExtension(persistence, system) {}
+      val scheduler = new PersistentSchedulerExtension(persistence)
 
       val result = scheduler.findEvents("type", "ref")
 
@@ -42,7 +42,7 @@ class PersistentSchedulerExtensionSpec extends TestKit(ActorSystem("test"))
     "find missing events is empty list" in {
       val eventOther = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", Some("ref-other").asJava, None.asJava)
       val persistence = InMemorySchedulerPersistence(Seq(eventOther))
-      val scheduler = new PersistentSchedulerExtension(persistence, system) {}
+      val scheduler = new PersistentSchedulerExtension(persistence)
 
       val result = scheduler.findEvents("type", "ref")
 

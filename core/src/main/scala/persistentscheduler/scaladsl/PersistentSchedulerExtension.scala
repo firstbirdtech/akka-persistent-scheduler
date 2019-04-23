@@ -1,26 +1,18 @@
-package persistentscheduler
+package persistentscheduler.scaladsl
+
+
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
+import persistentscheduler.{PersistentScheduler, TimedEvent}
 import persistentscheduler.PersistentScheduler.{FindEventsByReference, FoundEventsByReference, RemoveEventsByReference}
 import persistentscheduler.persistence.SchedulerPersistence
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-object PersistentSchedulerExtension {
-  def apply(persistence: SchedulerPersistence)(implicit system: ActorSystem,
-                                               timeout: Timeout): PersistentSchedulerExtension =
-    new PersistentSchedulerExtension(persistence, system)
-
-  def create(persistence: SchedulerPersistence, system: ActorSystem, timeout: Timeout): PersistentSchedulerExtension = {
-    implicit val to: Timeout = timeout
-    new PersistentSchedulerExtension(persistence, system)
-  }
-}
-
-class PersistentSchedulerExtension(persistence: SchedulerPersistence, system: ActorSystem)(implicit timeout: Timeout) {
+class PersistentSchedulerExtension(persistence: SchedulerPersistence)(implicit system: ActorSystem, timeout: Timeout) {
 
   implicit val ec = system.dispatcher
 
@@ -36,16 +28,19 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence, system: Ac
     Await.result(actorRefResult, 30.seconds)
   }
 
-  def schedule(event: TimedEvent): Future[Any] = {
-    scheduler ? PersistentScheduler.Schedule(event)
+  def schedule(event: TimedEvent): Future[Unit] = {
+    val result = scheduler ? PersistentScheduler.Schedule(event)
+    result.map(_ => ())
   }
 
-  def subscribe(eventType: String, subscriber: ActorRef): Future[Any] = {
-    scheduler ? PersistentScheduler.SubscribeActorRef(subscriber, eventType)
+  def subscribe(eventType: String, subscriber: ActorRef): Future[Unit] = {
+    val result = scheduler ? PersistentScheduler.SubscribeActorRef(subscriber, eventType)
+    result.map(_ => ())
   }
 
-  def removeEvents(eventType: String, reference: String): Future[Any] = {
-    scheduler ? RemoveEventsByReference(eventType, reference)
+  def removeEvents(eventType: String, reference: String): Future[Unit] = {
+    val result = scheduler ? RemoveEventsByReference(eventType, reference)
+    result.map(_ => ())
   }
 
   def findEvents(eventType: String, reference: String): Future[List[TimedEvent]] = {

@@ -1,9 +1,9 @@
-package persistentscheduler.persistence
+package persistentscheduler
 
 import java.util.{UUID, List => JList}
 
 import org.joda.time.DateTime
-import persistentscheduler.TimedEvent
+import persistentscheduler.persistence.SchedulerPersistence
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
@@ -17,9 +17,7 @@ object InMemorySchedulerPersistence {
 
 class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
 
-  implicit val dateTimeOrdering: Ordering[DateTime] = new Ordering[DateTime] {
-    override def compare(x: DateTime, y: DateTime): Int = x.compareTo(y)
-  }
+  implicit val dateTimeOrdering: Ordering[DateTime] = (x: DateTime, y: DateTime) => x.compareTo(y)
 
   private var events: Map[UUID, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
 
