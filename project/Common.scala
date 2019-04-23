@@ -13,8 +13,8 @@ object Common extends AutoPlugin {
     developers += Developer("contributors", "Contributors", "hello@firstbird,com", url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
 
-    scalaVersion := "2.12.6",
-    crossScalaVersions := Seq("2.12.6", "2.11.12"),
+    scalaVersion := "2.12.8",
+    crossScalaVersions := Seq("2.12.8", "2.11.12"),
     scalacOptions ++= Seq(
       "-encoding",
       "UTF-8",

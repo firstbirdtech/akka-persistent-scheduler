@@ -66,7 +66,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
 
       time.advance(3.seconds)
 
-      expectNoMsg()
+      expectNoMessage()
     }
 
     "load an additional timed event after publishing one" in {
@@ -144,7 +144,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
 
       time.advance(5.seconds)
 
-      expectNoMsg(1.second)
+      expectNoMessage(1.second)
     }
 
     "schedules events that have been manually inserted into the persistence after start" in {
@@ -158,7 +158,7 @@ class PersistentSchedulerSpec extends TestKit(ActorSystem("test"))
       persistence.save(expectedEvent)
 
       time.advance(1.minutes)
-      expectNoMsg(200.millis)
+      expectNoMessage(200.millis)
 
       time.advance(5.seconds)
       expectMsg(expectedEvent)
