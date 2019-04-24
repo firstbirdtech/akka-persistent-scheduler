@@ -7,15 +7,19 @@ import akka.util.Timeout
 import persistentscheduler.TimedEvent
 import persistentscheduler.persistence.SchedulerPersistence
 import persistentscheduler.scaladsl.{PersistentSchedulerExtension => SPersistentSchedulerExtension}
+import java.util.List
 
+import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters.toJava
+import scala.concurrent.ExecutionContext
 
 class PersistentSchedulerExtension(persistence: SchedulerPersistence, system: ActorSystem, timeout: Timeout) {
 
   private implicit val implicitSystem: ActorSystem = system
-  private implicit val implicitTimeout: Timeout = timeout
+  private implicit val ec: ExecutionContext        = system.dispatcher
+  private implicit val implicitTimeout: Timeout    = timeout
 
-  private val asScala: SPersistentSchedulerExtension              = new SPersistentSchedulerExtension(persistence)
+  private val asScala: SPersistentSchedulerExtension = new SPersistentSchedulerExtension(persistence)
 
   def schedule(event: TimedEvent): CompletionStage[Unit] = {
     toJava(asScala.schedule(event)).toCompletableFuture
@@ -30,7 +34,8 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence, system: Ac
   }
 
   def findEvents(eventType: String, reference: String): CompletionStage[List[TimedEvent]] = {
-    toJava(asScala.findEvents(eventType, reference)).toCompletableFuture
+    val eventualEvents = asScala.findEvents(eventType, reference).map(_.asJava)
+    toJava(eventualEvents).toCompletableFuture
   }
 
 }

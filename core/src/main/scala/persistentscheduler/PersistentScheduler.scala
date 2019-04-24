@@ -37,9 +37,7 @@ object PersistentScheduler {
     new PersistentScheduler(persistence)
 }
 
-class PersistentScheduler(persistence: SchedulerPersistence)
-    extends Actor
-    with AkkaScheduler {
+class PersistentScheduler(persistence: SchedulerPersistence) extends Actor with AkkaScheduler {
 
   implicit val ec = context.dispatcher
 
@@ -88,7 +86,7 @@ class PersistentScheduler(persistence: SchedulerPersistence)
     nextCancellable.filter(!_.isCancelled).foreach(_.cancel())
 
     nextEvent = persistence.next(1).asScala.headOption
-    nextCancellable = nextEvent.flatMap(schedule(_).toOption)
+    nextCancellable = nextEvent.flatMap(schedule)
   }
 
   private def publishEvent(e: TimedEvent): Unit = {
@@ -109,15 +107,15 @@ class PersistentScheduler(persistence: SchedulerPersistence)
     if (replaceNextEvent) {
       nextCancellable.foreach(_.cancel())
       nextEvent = Some(event)
-      nextCancellable = nextEvent.flatMap(schedule(_).toOption)
+      nextCancellable = nextEvent.flatMap(schedule)
     }
 
     sender() ! Scheduled(event)
   }
 
-  private def schedule(event: TimedEvent): Try[Cancellable] = {
+  private def schedule(event: TimedEvent): Option[Cancellable] = {
     val after = Math.max(event.date.getMillis - DateTime.now().getMillis, 0L).millis
-    Try(scheduler.scheduleOnce(after, self, PublishEvent(event)))
+    Try(scheduler.scheduleOnce(after, self, PublishEvent(event))).toOption
   }
 
   private def removeEventsByReference(eventType: String, reference: String): Unit = {
@@ -139,7 +137,7 @@ class PersistentScheduler(persistence: SchedulerPersistence)
   private def checkPersistenceForEvents(): Unit = {
     nextCancellable.foreach(_.cancel())
     nextEvent = persistence.next(1).asScala.headOption
-    nextCancellable = nextEvent.flatMap(schedule(_).toOption)
+    nextCancellable = nextEvent.flatMap(schedule)
   }
 
 }

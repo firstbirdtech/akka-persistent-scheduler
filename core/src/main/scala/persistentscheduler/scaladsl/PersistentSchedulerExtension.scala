@@ -1,22 +1,20 @@
 package persistentscheduler.scaladsl
 
-
-
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
-import persistentscheduler.{PersistentScheduler, TimedEvent}
 import persistentscheduler.PersistentScheduler.{FindEventsByReference, FoundEventsByReference, RemoveEventsByReference}
 import persistentscheduler.persistence.SchedulerPersistence
+import persistentscheduler.{PersistentScheduler, TimedEvent}
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class PersistentSchedulerExtension(persistence: SchedulerPersistence)(implicit system: ActorSystem, timeout: Timeout) {
 
-  implicit val ec = system.dispatcher
+  private implicit val ec: ExecutionContext = system.dispatcher
 
-  lazy val scheduler: ActorRef = {
+  private lazy val scheduler: ActorRef = {
     val actor = system.actorSelection("/user/akka-persistent-scheduler")
 
     val actorRefResult = actor
