@@ -3,25 +3,40 @@ package persistentscheduler.scaladsl
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
-import persistentscheduler.PersistentScheduler.{FindEventsByReference, FoundEventsByReference, RemoveEventsByReference}
-import persistentscheduler.persistence.SchedulerPersistence
-import persistentscheduler.{PersistentScheduler, TimedEvent}
+import persistentscheduler.impl.PersistentScheduler
+import persistentscheduler.impl.PersistentScheduler._
+import persistentscheduler.{SchedulerSettings, TimedEvent}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class PersistentSchedulerExtension(persistence: SchedulerPersistence)(implicit system: ActorSystem, timeout: Timeout) {
+object PersistentSchedulerExtension {
+  def apply(persistence: SchedulerPersistence, settings: SchedulerSettings)(
+      implicit system: ActorSystem): PersistentSchedulerExtension = {
+    new PersistentSchedulerExtension(persistence, settings)
+  }
+
+  def apply(persistence: SchedulerPersistence)(implicit system: ActorSystem): PersistentSchedulerExtension = {
+    new PersistentSchedulerExtension(persistence, SchedulerSettings.Defaults)
+  }
+}
+
+class PersistentSchedulerExtension(persistence: SchedulerPersistence, settings: SchedulerSettings)(
+    implicit system: ActorSystem) {
 
   private implicit val ec: ExecutionContext = system.dispatcher
+  private implicit val askTimeout: Timeout  = settings.askTimeout
 
   private lazy val scheduler: ActorRef = {
     val actor = system.actorSelection("/user/akka-persistent-scheduler")
 
     val actorRefResult = actor
-      .ask(PersistentScheduler.IsAlive())
+      .ask(PersistentScheduler.IsAlive)
       .mapTo[PersistentScheduler.Info]
       .map(_.self)
-      .recover { case _ => system.actorOf(PersistentScheduler.props(persistence), "akka-persistent-scheduler") }
+      .recover {
+        case _ => system.actorOf(PersistentScheduler.props(persistence, settings), "akka-persistent-scheduler")
+      }
 
     Await.result(actorRefResult, 30.seconds)
   }
@@ -42,12 +57,9 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence)(implicit s
   }
 
   def findEvents(eventType: String, reference: String): Future[List[TimedEvent]] = {
-    val future: Future[Any] = scheduler ? FindEventsByReference(eventType, reference)
-
-    future.map {
-      case FoundEventsByReference(_, _, events) => events
-      case _                                    => List()
-    }
+    (scheduler ? FindEventsByReference(eventType, reference))
+      .mapTo[FoundEventsByReference]
+      .map(_.events)
   }
 
 }

@@ -1,12 +1,12 @@
 package persistentscheduler
 
-import java.util.{UUID, List => JList}
+import java.util.UUID
 
 import org.joda.time.DateTime
-import persistentscheduler.persistence.SchedulerPersistence
+import persistentscheduler.scaladsl.SchedulerPersistence
 
-import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
+import scala.concurrent.Future
 
 object InMemorySchedulerPersistence {
   def apply(): InMemorySchedulerPersistence = new InMemorySchedulerPersistence()
@@ -17,38 +17,42 @@ object InMemorySchedulerPersistence {
 
 class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
 
-  implicit val dateTimeOrdering: Ordering[DateTime] = (x: DateTime, y: DateTime) => x.compareTo(y)
+  private implicit val dateTimeOrdering: Ordering[DateTime] = (x: DateTime, y: DateTime) => x.compareTo(y)
 
   private var events: Map[UUID, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
 
-  override def delete(id: UUID): Unit = {
+  override def delete(id: UUID): Future[Unit] = {
     events = events - id
+    Future.unit
   }
 
-  override def save(event: TimedEvent): TimedEvent = {
+  override def save(event: TimedEvent): Future[TimedEvent] = {
     events = events + (event.id -> event)
-    event
+    Future.successful(event)
   }
 
-  override def next(n: Int): JList[TimedEvent] = {
-    events.values.toList.sortBy(_.date).take(2).asJava
+  override def next(n: Int): Future[List[TimedEvent]] = {
+    val evts = events.values.toList.sortBy(_.date).take(n)
+    Future.successful(evts)
   }
 
-  override def count(): Long = events.size
+  override def count(): Future[Long] = Future.successful(events.size)
 
-  override def delete(eventType: String, reference: String): Unit = {
+  override def delete(eventType: String, reference: String): Future[Unit] = {
     events = events.filterNot {
       case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
     }
+    Future.unit
   }
 
-  override def find(eventType: String, reference: String): JList[TimedEvent] = {
-    events
+  override def find(eventType: String, reference: String): Future[List[TimedEvent]] = {
+    val evts = events
       .filter {
         case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
       }
       .values
       .toList
-      .asJava
+
+    Future.successful(evts)
   }
 }
