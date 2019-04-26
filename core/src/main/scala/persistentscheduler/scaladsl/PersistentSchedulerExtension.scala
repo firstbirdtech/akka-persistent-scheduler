@@ -43,23 +43,21 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence, settings: 
 
   def schedule(event: TimedEvent): Future[Unit] = {
     val result = scheduler ? PersistentScheduler.Schedule(event)
-    result.map(_ => ())
+    result.mapTo[Unit]
   }
 
   def subscribe(eventType: String, subscriber: ActorRef): Future[Unit] = {
     val result = scheduler ? PersistentScheduler.SubscribeActorRef(subscriber, eventType)
-    result.map(_ => ())
+    result.mapTo[Unit]
   }
 
   def removeEvents(eventType: String, reference: String): Future[Unit] = {
     val result = scheduler ? RemoveEventsByReference(eventType, reference)
-    result.map(_ => ())
+    result.mapTo[Unit]
   }
 
   def findEvents(eventType: String, reference: String): Future[List[TimedEvent]] = {
-    (scheduler ? FindEventsByReference(eventType, reference))
-      .mapTo[FoundEventsByReference]
-      .map(_.events)
+    (scheduler ? FindEventsByReference(eventType, reference)).mapTo[List[TimedEvent]]
   }
 
 }
