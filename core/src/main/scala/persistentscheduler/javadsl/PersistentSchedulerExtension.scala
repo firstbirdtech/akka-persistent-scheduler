@@ -65,7 +65,7 @@ class PersistentSchedulerExtension(persistence: SchedulerPersistence,
 
       override def save(event: TimedEvent): Future[TimedEvent]  = toScala(persistence.save(event))
       override def next(n: Int): Future[scala.List[TimedEvent]] = toScala(persistence.next(n)).map(_.asScala.toList)
-      override def count(): Future[Long]                        = toScala(persistence.count())
+      override def count(): Future[Long]                        = toScala(persistence.count()).map(l => l)
     }
   }
 
