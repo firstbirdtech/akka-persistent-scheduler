@@ -45,7 +45,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
 
@@ -65,7 +65,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
 
@@ -83,7 +83,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime()
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       scheduler ! Schedule(event)
@@ -119,7 +119,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime(persistenceWithExistingEvents)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsgClass(classOf[SubscribedActorRef])
+      expectMsgClass(classOf[Unit])
 
       time.advance(3.seconds)
 
@@ -136,7 +136,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsgClass(classOf[SubscribedActorRef])
+      expectMsgClass(classOf[Unit])
 
       time.advance(3.seconds)
 
@@ -165,7 +165,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       scheduler ! RemoveEventsByReference("type", "ref")
       expectMsg(())
@@ -180,7 +180,7 @@ class PersistentSchedulerSpec
       val scheduler   = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       val expectedEvent = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       persistence.save(expectedEvent)
@@ -209,7 +209,7 @@ class PersistentSchedulerSpec
       val scheduler = persistentSchedulerWithVirtualTime(buggyPersistence)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       val event = TimedEvent(UUID.randomUUID(), DateTime.now().plusSeconds(5), "type", None.asJava, None.asJava)
       scheduler ! Schedule(event)
@@ -235,7 +235,7 @@ class PersistentSchedulerSpec
       val scheduler   = persistentSchedulerWithVirtualTime(persistence)
 
       scheduler ! SubscribeActorRef(self, "type")
-      expectMsg(SubscribedActorRef(self))
+      expectMsg(())
 
       scheduler ! FindEventsByReference("type", "ref")
       expectMsg(List(event1, event2))

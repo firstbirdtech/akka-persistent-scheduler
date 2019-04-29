@@ -17,12 +17,6 @@ private[persistentscheduler] object PersistentScheduler {
 
   case class Info(self: ActorRef) extends Result
 
-  case class SubscribedActorRef(ref: ActorRef) extends Result
-
-  case class Scheduled(event: TimedEvent) extends Result
-
-  case class RemovedEventsByReference(eventType: String, reference: String)
-
   sealed trait Request
 
   case object IsAlive extends Request
@@ -84,7 +78,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
 
   private def addSubscription(subscription: Subscription): Unit = {
     this.subscriptions = this.subscriptions + subscription
-    sender ! SubscribedActorRef(sender)
+    sender ! (())
   }
 
   private def scheduleEvent(event: TimedEvent): Unit = {
