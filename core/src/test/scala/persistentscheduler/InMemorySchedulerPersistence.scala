@@ -17,13 +17,15 @@ object InMemorySchedulerPersistence {
 
 class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
 
-  private implicit val dateTimeOrdering: Ordering[DateTime] = (x: DateTime, y: DateTime) => x.compareTo(y)
+  private implicit val dateTimeOrdering: Ordering[DateTime] = new Ordering[DateTime]{
+    override def compare(x: DateTime, y: DateTime): Int = x.compareTo(y)
+  }
 
   private var events: Map[UUID, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
 
   override def delete(id: UUID): Future[Unit] = {
     events = events - id
-    Future.unit
+    Future.successful(())
   }
 
   override def save(event: TimedEvent): Future[TimedEvent] = {
@@ -42,7 +44,7 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
     events = events.filterNot {
       case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
     }
-    Future.unit
+    Future.successful(())
   }
 
   override def find(eventType: String, reference: String): Future[List[TimedEvent]] = {

@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import persistentscheduler.impl.PersistentScheduler._
 import persistentscheduler.scaladsl.SchedulerPersistence
 import persistentscheduler.{SchedulerSettings, TimedEvent}
-
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -100,7 +100,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
 
   private def removeEventsByReference(eventType: String, reference: String): Unit = {
     val reschedule =
-      nextEvent.exists(e => e.eventType == eventType && e.reference.filter(s => s == reference).isPresent)
+      nextEvent.exists(e => e.eventType == eventType && e.reference.asScala.contains(reference))
     val result = persistence.delete(eventType, reference)
 
     result pipeTo sender
