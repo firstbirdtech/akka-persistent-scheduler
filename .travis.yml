@@ -3,13 +3,15 @@ language: scala
 sudo: required
 
 scala:
-   - 2.11.8
+   - 2.12.12
+   - 2.13.3
 
 jdk:
-   - oraclejdk8
+   - openjdk8
+   - openjdk11
 
 script:
-  - sbt clean test
+  - sbt clean scalafmtCheckAll scalafmtSbtCheck test
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
@@ -18,19 +20,5 @@ before_cache:
 cache:
   directories:
     - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot
-
-#deploy:
-#  provider: script
-#  script:
-#    - sbt publish
-#  on:
-#    tags: true
-#    repo: firstbirdtech/akka-persistent-scheduler
-
-env:
-  global:
-    # encrypt with: travis encrypt BINTRAY_USER=...
-    - secure: "Em/iogNygLqyUZQdkQtRdcr2VMptR1gvN6n44WEEZkMxdiP8a51sMZk38JN+m5D6WOOKo3TpcHkcRV/6f2dUdLQtunqsm4uUG4w92WQehRSQfiRn+wfxYXIG9GCn4eon/2RpJdNxkA/sM81IDeL776i4bK53hfjFkIK1rdlWBwOjynH9O5FLtU3JqUqTiLBbET7Bqyf/qgrEhf/K74qYq+zKUMUFd3/Gck6F1IQhGnL+R1BoMcqQ5LI7kiPVAIX3n7ls2wquSIfYH4JmqhjyQW1QWAmJlebAf+2cFqMIZQ+1otFSSEgrvEpvEgzH1MGG+B10AwhZulh+Qbh+piAy0hh6eN22w3LBzf2GLuQ4L6cZy6JdyQaf7XqZYbwrihU0jzHAPEos7DvX5L7q/NRIDi8Uq/EFkvITddE8jLuqbU7zxzDOy285pS0mQ64Bdg9HHdSi6//9VqiiZd4RkL/ISkBUsVK3yKmwTQLjJCMnIzyIy36gX/kyu7J8NyQFfWUxosdMGKNLuQ617CDEneJq0Mb48nI4SaeK3UHjQ5ZhHMsRD1SYaC0yV38OqsHRNhp7aPb76vyEJn/oFYtWRMbGDA0aHMVr2p5vRQw/1fINKgtL69UnpMwpGZckKZjVbJMV63a0dHS8o2buEQlJL2CKe5thApJZdCan3G+rQMpjeEs="
-    # encrypt with: travis encrypt BINTRAY_PASS=...
-    - secure: "UO8sflH2oEvO9RZx1mACcRSUTD4GsXldBcsyW5OPv/MgvFaC/Q0e6p5dUu+/YkA5u9qJiV5Pqou2iLB78MCwp33qTjFv2WlbWUKZhOdkecT4ALYxTv4Qaur8l6NAczil4CnhxcVrpdFTHYuq16uOVwuUXkuC04VtYHv1CC8Mf0FLQNW3ngqd5I4KfV4bnTpqWWvmogqTSxdUDSRhbHhYAImeGPumSpRF3hzzC1DM2DV4jm07ztcoPCaY0iUpwBTahxr9kfemVF+yuBaSWXvnrDSBGrW3jXtE1YJP+elVI0NrvKoDP4tLptzctjG7sZgfnC70MrTgw8FX1vcIWvNaFRkKAOhKYS0fjQ2bBSIto16QJq35N33y7fFxK703f7Zm63f3VqnOg9s12SDPsYvydvUZLPdlAhx6F9SU3WbWwraBFAUTNP8vZF9Eyf1KTBo99ZLKzN5+Ze7/3hiMliPnniHHJA+rGObQg3IefzcpL3LYkG++JMkTBhfuMKsoS6Igh4f9zYViL2U5y8Htp6Rzx6YhneLaPT4cF72BddJyszQgRfVt/gwCli2okT1NRGamyD0bpaLA7zFOPvNvRsd0SsfuhiNh34vAPiJUpIdTebEh1JUEwTbNgxhHoFpBZ0+UgewllYwzdbRotcfUZcr/dkKCfLwfbqH077/mdrNe1jo="
+    - $HOME/.coursier/cache
+    - $HOME/.sbt

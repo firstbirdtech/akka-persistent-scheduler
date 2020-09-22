@@ -9,12 +9,18 @@ object Common extends AutoPlugin {
     organization := "com.firstbird",
     organizationName := "Firstbird GmbH",
     homepage := Some(url("https://github.com/firstbirdtech/akka-persistent-scheduler")),
-    scmInfo := Some(ScmInfo(url("https://github.com/firstbirdtech/akka-persistent-scheduler"), "git@github.com:firstbirdtech/akka-persistent-scheduler.git")),
-    developers += Developer("contributors", "Contributors", "hello@firstbird,com", url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/firstbirdtech/akka-persistent-scheduler"),
+        "git@github.com:firstbirdtech/akka-persistent-scheduler.git")),
+    developers += Developer(
+      "contributors",
+      "Contributors",
+      "hello@firstbird,com",
+      url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-
-    scalaVersion := "2.12.8",
-    crossScalaVersions := Seq("2.12.8", "2.11.12"),
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.12", scalaVersion.value),
     scalacOptions ++= Seq(
       "-encoding",
       "UTF-8",
@@ -23,17 +29,15 @@ object Common extends AutoPlugin {
       "-deprecation",
       "-Xfatal-warnings",
       "-Xlint",
-      "-Yno-adapted-args",
-      "-Ywarn-dead-code",
-      "-Xfuture"
+      "-Ywarn-dead-code"
     ),
-    javacOptions ++= Seq(
-      "-Xlint:unchecked"
+    scalacOptions ++= (
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => Seq.empty[String]
+        case _             => Seq("-Xfuture", "-Yno-adapted-args")
+      }
     ),
     // show full stack traces and test case durations
-    testOptions in Test += Tests.Argument("-oDF"),
-    resolvers ++= Seq(
-      Resolver.mavenLocal
-    )
+    testOptions in Test += Tests.Argument("-oDF")
   )
 }

@@ -1,5 +1,6 @@
 package persistentscheduler.javadsl
 
+import java.lang.{Long => JLong}
 import java.util.concurrent.CompletionStage
 import java.util.{UUID, List => JList}
 
@@ -12,6 +13,6 @@ trait SchedulerPersistence {
   def find(eventType: String, reference: String): CompletionStage[JList[TimedEvent]]
   def save(event: TimedEvent): CompletionStage[TimedEvent]
   def next(n: Int): CompletionStage[JList[TimedEvent]]
-  def count(): CompletionStage[java.lang.Long]
+  def count(): CompletionStage[JLong]
 
 }
