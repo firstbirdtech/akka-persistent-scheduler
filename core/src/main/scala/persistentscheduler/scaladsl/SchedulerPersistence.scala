@@ -1,16 +1,14 @@
 package persistentscheduler.scaladsl
 
-import java.util.UUID
-
-import persistentscheduler.TimedEvent
+import persistentscheduler._
 
 import scala.concurrent.Future
 
 trait SchedulerPersistence {
 
-  def delete(eventType: String, reference: String): Future[Unit]
-  def delete(id: UUID): Future[Unit]
-  def find(eventType: String, reference: String): Future[List[TimedEvent]]
+  def delete(eventType: EventType, reference: Reference): Future[Unit]
+  def delete(id: Id): Future[Unit]
+  def find(eventType: EventType, reference: Reference): Future[List[TimedEvent]]
   def save(event: TimedEvent): Future[TimedEvent]
   def next(n: Int): Future[List[TimedEvent]]
   def count(): Future[Long]

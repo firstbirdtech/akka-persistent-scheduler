@@ -5,7 +5,7 @@ import java.time.{Duration => JDuration}
 import scala.concurrent.duration.{FiniteDuration, _}
 
 object SchedulerSettings {
-  val Defaults = SchedulerSettings(1.minute, 1.minute, 15.seconds)
+  val Defaults: SchedulerSettings = SchedulerSettings(1.minute, 1.minute, 15.seconds)
 
   def create(delay: JDuration, interval: JDuration, askTimeout: JDuration): SchedulerSettings = {
     SchedulerSettings(

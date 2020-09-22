@@ -1,29 +1,19 @@
 package persistentscheduler
 
-import java.util.UUID
-
-import org.joda.time.DateTime
 import persistentscheduler.scaladsl.SchedulerPersistence
 
-import scala.compat.java8.OptionConverters._
 import scala.concurrent.Future
 
 object InMemorySchedulerPersistence {
-  def apply(): InMemorySchedulerPersistence = new InMemorySchedulerPersistence()
-
-  def apply(initialEvents: Seq[TimedEvent]): InMemorySchedulerPersistence =
+  def apply(initialEvents: TimedEvent*): InMemorySchedulerPersistence =
     new InMemorySchedulerPersistence(initialEvents)
 }
 
 class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) extends SchedulerPersistence {
 
-  private implicit val dateTimeOrdering: Ordering[DateTime] = new Ordering[DateTime]{
-    override def compare(x: DateTime, y: DateTime): Int = x.compareTo(y)
-  }
+  private var events: Map[Id, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
 
-  private var events: Map[UUID, TimedEvent] = initialEvents.map(e => (e.id, e)).toMap
-
-  override def delete(id: UUID): Future[Unit] = {
+  override def delete(id: Id): Future[Unit] = {
     events = events - id
     Future.successful(())
   }
@@ -40,17 +30,17 @@ class InMemorySchedulerPersistence(initialEvents: Seq[TimedEvent] = Seq()) exten
 
   override def count(): Future[Long] = Future.successful(events.size)
 
-  override def delete(eventType: String, reference: String): Future[Unit] = {
-    events = events.filterNot {
-      case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
+  override def delete(eventType: EventType, reference: Reference): Future[Unit] = {
+    events = events.filterNot { case (_, TimedEvent(_, _, et, r, _)) =>
+      eventType == et && r.contains(reference)
     }
     Future.successful(())
   }
 
-  override def find(eventType: String, reference: String): Future[List[TimedEvent]] = {
+  override def find(eventType: EventType, reference: Reference): Future[List[TimedEvent]] = {
     val evts = events
-      .filter {
-        case (_, TimedEvent(_, _, et, r, _)) => eventType == et && Some(reference).asJava == r
+      .filter { case (_, TimedEvent(_, _, et, r, _)) =>
+        eventType == et && r.contains(reference)
       }
       .values
       .toList
