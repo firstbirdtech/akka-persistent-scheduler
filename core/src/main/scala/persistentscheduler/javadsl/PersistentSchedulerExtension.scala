@@ -1,7 +1,25 @@
-package persistentscheduler.javadsl
+/*
+ * Copyright (c) 2021 Akka Persistent Scheduler contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-import java.util.concurrent.CompletionStage
-import java.util.{List => JList}
+package persistentscheduler.javadsl
 
 import akka.actor.{ActorRef, ActorSystem}
 import persistentscheduler._
@@ -10,6 +28,8 @@ import persistentscheduler.scaladsl.{
   SchedulerPersistence => SSchedulerPersistence
 }
 
+import java.util.concurrent.CompletionStage
+import java.util.{List => JList}
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
@@ -33,8 +53,8 @@ class PersistentSchedulerExtension(
     settings: SchedulerSettings,
     system: ActorSystem) {
 
-  private implicit val implicitSystem: ActorSystem = system
-  private implicit val ec: ExecutionContext        = system.dispatcher
+  implicit private val implicitSystem: ActorSystem = system
+  implicit private val ec: ExecutionContext        = system.dispatcher
 
   private val asScala: SPersistentSchedulerExtension = new SPersistentSchedulerExtension(persistence, settings)
 
@@ -55,7 +75,7 @@ class PersistentSchedulerExtension(
     toJava(eventualEvents).toCompletableFuture
   }
 
-  private implicit def javaToScalaSchedulerPersistence(persistence: SchedulerPersistence): SSchedulerPersistence = {
+  implicit private def javaToScalaSchedulerPersistence(persistence: SchedulerPersistence): SSchedulerPersistence = {
     new SSchedulerPersistence {
       override def delete(eventType: EventType, reference: Reference): Future[Unit] =
         toScala(persistence.delete(eventType.value, reference.value))

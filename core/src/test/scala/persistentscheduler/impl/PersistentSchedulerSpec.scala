@@ -1,8 +1,5 @@
 package persistentscheduler.impl
 
-import java.time.Instant
-import java.util.UUID
-
 import akka.actor.{ActorSystem, Props, Scheduler}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import com.miguno.akka.testing.VirtualTime
@@ -14,6 +11,8 @@ import persistentscheduler._
 import persistentscheduler.impl.PersistentScheduler.{Request, Result}
 import persistentscheduler.scaladsl.SchedulerPersistence
 
+import java.time.Instant
+import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

@@ -1,8 +1,5 @@
 package persistentscheduler
 
-import java.time.Instant
-import java.util.UUID
-
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import org.scalatest.OneInstancePerTest
@@ -11,6 +8,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import persistentscheduler.scaladsl.PersistentSchedulerExtension
 
+import java.time.Instant
+import java.util.UUID
 import scala.concurrent.duration._
 
 class PersistentSchedulerExtensionSpec
