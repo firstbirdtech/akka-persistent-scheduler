@@ -6,6 +6,7 @@ import com.miguno.akka.testing.VirtualTime
 import org.scalatest.OneInstancePerTest
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpecLike
 import persistentscheduler._
 import persistentscheduler.impl.PersistentScheduler.{Request, Result}
@@ -26,6 +27,8 @@ class PersistentSchedulerSpec
 
   private val time     = new VirtualTime
   private val settings = SchedulerSettings(3.seconds, 30.seconds, 15.seconds)
+
+  implicit override def patienceConfig: PatienceConfig = PatienceConfig(Span(10, Seconds))
 
   "A PersistentScheduler" should {
 
