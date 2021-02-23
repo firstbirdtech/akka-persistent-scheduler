@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  private val akkaVersion = "2.6.9"
+  private val akkaVersion = "2.6.13"
 
   val core = Seq(
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2",
