@@ -5,7 +5,7 @@ object Dependencies {
   private val akkaVersion = "2.6.9"
 
   val core = Seq(
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2",
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.3",
     "org.scala-lang.modules" %% "scala-java8-compat"      % "0.9.1",
     "com.typesafe.akka"      %% "akka-actor"              % akkaVersion,
     "com.typesafe.akka"      %% "akka-testkit"            % akkaVersion % Test,
