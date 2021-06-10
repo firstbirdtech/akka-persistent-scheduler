@@ -47,7 +47,7 @@ lazy val commonSettings = Seq(
     }
   ),
   // show full stack traces and test case durations
-  testOptions in Test += Tests.Argument("-oDF"),
+  Test / testOptions += Tests.Argument("-oDF"),
   headerLicense := Some(HeaderLicense.MIT("2021", "Akka Persistent Scheduler contributors")),
   semanticdbEnabled := true,
   semanticdbVersion := scalafixSemanticdb.revision
@@ -56,7 +56,7 @@ lazy val commonSettings = Seq(
 lazy val root = project
   .in(file("."))
   .settings(commonSettings)
-  .settings(skip in publish := true)
+  .settings(publish / skip := true)
   .aggregate(core)
 
 lazy val core = project

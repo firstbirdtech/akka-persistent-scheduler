@@ -28,10 +28,10 @@ import persistentscheduler.scaladsl.SchedulerPersistence
 import persistentscheduler.{SchedulerSettings, TimedEvent, _}
 
 import java.time.Instant
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-import scala.annotation.nowarn
 
 private[persistentscheduler] object PersistentScheduler {
 
@@ -100,7 +100,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
 
   private def addSubscription(subscription: Subscription): Unit = {
     this.subscriptions = this.subscriptions + subscription
-    sender().tell(Result.SubscribedActorRef(sender()),sender())
+    sender().tell(Result.SubscribedActorRef(sender()), sender())
   }
 
   private def scheduleEvent(event: TimedEvent): Unit = {
@@ -157,7 +157,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
   private def sendEventToSubscribers(e: TimedEvent) = {
     Future {
       subscriptions.filter(_.eventType == e.eventType).foreach { subscription =>
-        subscription.subscriber.tell( e, sender())
+        subscription.subscriber.tell(e, sender())
       }
     }
   }
