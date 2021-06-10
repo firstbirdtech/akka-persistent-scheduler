@@ -17,8 +17,8 @@ lazy val commonSettings = Seq(
     "Contributors",
     "hello@firstbird,com",
     url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
-  scalaVersion := "2.13.3",
-  crossScalaVersions := Seq("2.12.12", scalaVersion.value),
+  scalaVersion := "2.13.6",
+  crossScalaVersions := Seq("2.12.14", scalaVersion.value),
   scalacOptions ++= Seq(
     "-encoding",
     "UTF-8",
@@ -47,7 +47,7 @@ lazy val commonSettings = Seq(
     }
   ),
   // show full stack traces and test case durations
-  testOptions in Test += Tests.Argument("-oDF"),
+  Test / testOptions += Tests.Argument("-oDF"),
   headerLicense := Some(HeaderLicense.MIT("2021", "Akka Persistent Scheduler contributors")),
   semanticdbEnabled := true,
   semanticdbVersion := scalafixSemanticdb.revision
@@ -56,7 +56,7 @@ lazy val commonSettings = Seq(
 lazy val root = project
   .in(file("."))
   .settings(commonSettings)
-  .settings(skip in publish := true)
+  .settings(publish / skip := true)
   .aggregate(core)
 
 lazy val core = project
