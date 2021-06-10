@@ -31,6 +31,7 @@ import java.time.Instant
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import scala.annotation.nowarn
 
 private[persistentscheduler] object PersistentScheduler {
 
@@ -74,7 +75,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
   private var nextCancellable: Option[Cancellable] = None
 
   override def receive: Receive = {
-    case Request.IsAlive                                       => sender() ! Result.Info(self)
+    case Request.IsAlive                                       => sender().tell(Result.Info(self), sender())
     case Request.SubscribeActorRef(subscriber, eventType)      => addSubscription(Subscription(eventType, subscriber))
     case Request.Schedule(event)                               => scheduleEvent(event)
     case Request.FindEventsByReference(eventType, reference)   => findEventsByReference(eventType, reference)
@@ -88,17 +89,18 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
 
   }
 
+  @nowarn("msg=deprecated")
   override def preStart(): Unit = {
-    scheduler.scheduleAtFixedRate(settings.delay, settings.interval)(() => scheduleNextEventFromPersistence())
+    scheduler.schedule(settings.delay, settings.interval)(scheduleNextEventFromPersistence())
   }
 
   override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
-    self ! State(subscriptions)
+    self.tell(State(subscriptions), sender())
   }
 
   private def addSubscription(subscription: Subscription): Unit = {
     this.subscriptions = this.subscriptions + subscription
-    sender() ! Result.SubscribedActorRef(sender())
+    sender().tell(Result.SubscribedActorRef(sender()),sender())
   }
 
   private def scheduleEvent(event: TimedEvent): Unit = {
@@ -155,7 +157,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
   private def sendEventToSubscribers(e: TimedEvent) = {
     Future {
       subscriptions.filter(_.eventType == e.eventType).foreach { subscription =>
-        subscription.subscriber ! e
+        subscription.subscriber.tell( e, sender())
       }
     }
   }
