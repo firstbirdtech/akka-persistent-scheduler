@@ -100,7 +100,11 @@ class PersistentSchedulerSpec
       // expect event published after schedule check
       delayed {
         time.advance(5.seconds)
-        expectMsg(event)
+
+        //make sure the scheduler has ticked
+        delayed {
+          expectMsg(event)
+        }
       }
 
       // trigger scheduled check for new events after interval
@@ -109,7 +113,11 @@ class PersistentSchedulerSpec
       // expect event published after interval
       delayed {
         time.advance(40.seconds)
-        expectMsg(event2)
+
+        //make sure the scheduler has ticked
+        delayed {
+          expectMsg(event2)
+        }
       }
     }
 
