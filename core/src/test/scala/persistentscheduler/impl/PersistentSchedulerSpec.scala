@@ -114,7 +114,7 @@ class PersistentSchedulerSpec
     }
 
     "schedule existing events from persistence on startup" in {
-      val existingEvent                 = TimedEvent(Id(UUID.randomUUID()), Instant.now().plusSeconds(5), EventType("type"), None, None)
+      val existingEvent = TimedEvent(Id(UUID.randomUUID()), Instant.now().plusSeconds(5), EventType("type"), None, None)
       val persistenceWithExistingEvents = InMemorySchedulerPersistence(existingEvent)
 
       val scheduler = persistentSchedulerWithVirtualTime(persistenceWithExistingEvents)
