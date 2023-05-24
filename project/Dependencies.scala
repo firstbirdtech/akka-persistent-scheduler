@@ -10,7 +10,7 @@ object Dependencies {
     "com.typesafe.akka"      %% "akka-actor"              % akkaVersion,
     "com.typesafe.akka"      %% "akka-testkit"            % akkaVersion % Test,
     "com.miguno.akka"        %% "akka-mock-scheduler"     % "0.5.5"     % Test,
-    "org.scalatest"          %% "scalatest"               % "3.2.14"    % Test
+    "org.scalatest"          %% "scalatest"               % "3.2.16"    % Test
   )
 
 }
