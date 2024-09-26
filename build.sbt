@@ -17,7 +17,7 @@ lazy val commonSettings = Seq(
     "Contributors",
     "hello@firstbird,com",
     url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
-  scalaVersion       := "2.13.6",
+  scalaVersion       := "2.13.15",
   crossScalaVersions := Seq("2.12.14", scalaVersion.value),
   scalacOptions ++= Seq(
     "-encoding",
