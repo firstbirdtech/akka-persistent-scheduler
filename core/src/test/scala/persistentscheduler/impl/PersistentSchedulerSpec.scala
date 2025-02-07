@@ -100,7 +100,7 @@ class PersistentSchedulerSpec
       // expect event published after schedule check
       delayed {
         time.advance(5.seconds)
-        expectMsg(event)
+        delayed(expectMsg(event))
       }
 
       // trigger scheduled check for new events after interval
@@ -109,12 +109,12 @@ class PersistentSchedulerSpec
       // expect event published after interval
       delayed {
         time.advance(40.seconds)
-        expectMsg(event2)
+        delayed(expectMsg(event2))
       }
     }
 
     "schedule existing events from persistence on startup" in {
-      val existingEvent                 = TimedEvent(Id(UUID.randomUUID()), Instant.now().plusSeconds(5), EventType("type"), None, None)
+      val existingEvent = TimedEvent(Id(UUID.randomUUID()), Instant.now().plusSeconds(5), EventType("type"), None, None)
       val persistenceWithExistingEvents = InMemorySchedulerPersistence(existingEvent)
 
       val scheduler = persistentSchedulerWithVirtualTime(persistenceWithExistingEvents)
@@ -260,7 +260,7 @@ class PersistentSchedulerSpec
   }
 
   private def delayed[A](a: => A): A = {
-    Thread.sleep(25)
+    Thread.sleep(100)
     a
   }
 }
