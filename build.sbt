@@ -17,8 +17,8 @@ lazy val commonSettings = Seq(
     "Contributors",
     "hello@firstbird,com",
     url("https://github.com/firstbirdtech/akka-persistent-scheduler/graphs/contributors")),
-  scalaVersion       := "2.13.6",
-  crossScalaVersions := Seq("2.12.14", scalaVersion.value),
+  scalaVersion       := "2.13.16",
+  crossScalaVersions := Seq("2.12.20", scalaVersion.value),
   scalacOptions ++= Seq(
     "-encoding",
     "UTF-8",
@@ -64,5 +64,10 @@ lazy val core = project
   .settings(commonSettings)
   .settings(
     name := "akka-persistent-scheduler",
-    libraryDependencies ++= Dependencies.core
+    libraryDependencies ++= Dependencies.core(
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 12)) => "0.8.0"
+        case _             => "1.0.2"
+      }
+    )
   )
