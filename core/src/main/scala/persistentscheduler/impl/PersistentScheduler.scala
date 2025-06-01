@@ -80,7 +80,7 @@ private[impl] class PersistentScheduler(persistence: SchedulerPersistence, setti
     case Request.Schedule(event)                               => scheduleEvent(event)
     case Request.FindEventsByReference(eventType, reference)   => findEventsByReference(eventType, reference)
     case Request.RemoveEventsByReference(eventType, reference) => removeEventsByReference(eventType, reference)
-    case State(subs) =>
+    case State(subs)                                           =>
       this.subscriptions = subs;
     case ScheduleNextEvent(event) =>
       nextCancellable.foreach(_.cancel())
